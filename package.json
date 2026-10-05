@@ -1,0 +1,21 @@
+{
+  "name": "ai_hackathon_fresher",
+  "version": "1.0.0",
+  "description": "This repository is structured to support a hackathon prototype for an AI-powered IT helpdesk solution.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "frontend:install": "npm --prefix frontend install",
+    "frontend:dev": "npm --prefix frontend run dev -- --host 0.0.0.0",
+    "backend:install": "python -m venv backend/.venv && backend/.venv/Scripts/python -m pip install -r backend/requirements.txt",
+    "backend:dev": "cd backend && .\\.venv\\Scripts\\python -m uvicorn app.main:app --host 127.0.0.1 --port 8000",
+    "test": "echo \"No project tests configured yet.\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
