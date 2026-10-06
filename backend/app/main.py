@@ -14,6 +14,7 @@ try:
         get_collection_handles,
     )
     from app.routers import health as health_router
+    from app.routers import knowledge as knowledge_router
 except ImportError:  # pragma: no cover - fallback for repo-root imports during tests
     from backend.app.database import (
         MongoSettings,
@@ -22,6 +23,7 @@ except ImportError:  # pragma: no cover - fallback for repo-root imports during 
         get_collection_handles,
     )
     from backend.app.routers import health as health_router
+    from backend.app.routers import knowledge as knowledge_router
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +87,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(health_router.router, prefix="/api/v1", tags=["health"])
+    app.include_router(knowledge_router.router, prefix="/api/v1/knowledge", tags=["knowledge"])
     return app
 
 

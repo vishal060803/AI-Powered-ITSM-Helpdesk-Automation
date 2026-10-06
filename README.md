@@ -1,152 +1,352 @@
-# AI-Powered ITSM Helpdesk
+# AI-Powered IT Helpdesk & Intelligent Automation Demo
 
-A hackathon prototype for an employee IT helpdesk. The intended product combines a React portal, a FastAPI service, MongoDB-backed records, grounded knowledge search, and simulated or ServiceNow-based workflows.
+This project is a working prototype for an enterprise-style IT helpdesk experience. The goal is to demonstrate how employees can submit IT issues, ask support questions, get AI-guided troubleshooting, and route work through an intelligent automation flow that feels like a real ServiceNow-style helpdesk environment.
 
-## Current Status
+The solution combines:
+- a React frontend for the employee portal,
+- a FastAPI backend for APIs and orchestration,
+- a knowledge base with vector search and grounded retrieval,
+- mock ticketing and automation flows,
+- and a dashboard to represent the operational state of support requests.
 
-The repository currently contains the React app shell, FastAPI app shell, health endpoints, MongoDB connection and collection initialization, shared data models, and a small automated test suite. The AI, retrieval, and ticketing workflows are planned but are not connected end to end yet.
+This is designed as a hackathon / demo prototype, not a production-ready enterprise deployment.
 
-## Technology and Structure
+---
 
-- Frontend: React 18 and Vite
-- Backend: Python 3.10+ and FastAPI
-- Database foundation: PyMongo with configurable MongoDB URI
-- Data contracts: Pydantic models in `backend/app/schemas.py`
-- Frontend source: `frontend/src/`
-- Backend source: `backend/app/`
-- Knowledge document location: `data/knowledge_docs/`
-- Tests: `tests/`
-- API contract notes: `docs/api_contracts.md`
+## Project Objective
 
-## Prerequisites
+The project targets the following core business challenge:
+- employees can describe issues in natural language,
+- the system classifies the request,
+- the AI retrieves approved troubleshooting knowledge,
+- the system decides whether a request can be self-healed,
+- and the request is tracked like a real IT service desk ticket.
 
-- Windows with PowerShell, Node.js 18+ and npm
+The main demo scenarios are:
+- Intelligent Ticket Intake
+- Auto Resolution / Self-Heal Agent
+- Knowledge Management Automation
+- Self-Service Portal & Chatbot
+- Software Provisioning Automation
+
+---
+
+## What We Built So Far
+
+### 1. Frontend Employee Portal
+The React app provides a functional demo portal with:
+- Chat panel
+- Dashboard
+- Knowledge Base page
+- Requests page
+- Ticket creation flow
+- Enterprise-styled dashboard cards and request tables
+
+Key implementation files:
+- frontend/src/App.jsx
+- frontend/src/styles.css
+- frontend/src/main.jsx
+
+### 2. Backend App Shell
+The FastAPI backend is running with:
+- app initialization
+- CORS configuration
+- health endpoints
+- versioned API routing
+- app startup lifecycle for MongoDB preparation
+
+Key implementation files:
+- backend/app/main.py
+- backend/app/routers/health.py
+- backend/app/routers/knowledge.py
+
+### 3. Knowledge Base and Search Pipeline
+The project includes:
+- approved IT knowledge documents in data/knowledge_docs/
+- embedding generation pipeline
+- Chroma-backed vector search
+- source-aware retrieval with metadata such as title, category, topic, and file
+- semantic lookup for user questions
+
+Relevant implementation files:
+- backend/app/knowledge_pipeline.py
+- backend/app/knowledge_vector_store.py
+- data/knowledge_docs/
+- data/embeddings/knowledge_chunks.jsonl
+- data/vector_store/chroma/
+
+### 4. Grounded AI Chat Assistant
+The assistant is grounded on approved support content:
+- it searches the knowledge base for relevant articles,
+- it builds a natural-language response,
+- it presents helpful troubleshooting steps,
+- and it avoids exposing internal workflow text in the visible user chat output.
+
+Relevant implementation files:
+- backend/app/chat_assistant.py
+- backend/app/routers/knowledge.py
+
+### 5. Ticket Intake Workflow
+The app supports a ticket-like flow where a user can:
+- describe a problem,
+- trigger a structured ticket creation flow,
+- create a ticket request in the UI,
+- and see it appear in the dashboard list.
+
+This is a lightweight demo of an ITSM ticket intake pipeline.
+
+### 6. MongoDB Foundation
+The project includes the database foundation for future persistence:
+- MongoDB settings
+- client creation
+- collection preparation
+- collection naming for tickets, knowledge, chat, audit, and software requests
+
+Relevant file:
+- backend/app/database.py
+
+### 7. Shared Data Contracts
+The app has schema definitions for:
+- AI orchestration inputs and outputs
+- support request metadata
+- ticket and incident style records
+- knowledge search results
+- automation-related payloads
+
+Relevant file:
+- backend/app/schemas.py
+
+### 8. Test Coverage
+The repository contains automated checks for:
+- backend app shell startup
+- knowledge retrieval behavior
+- knowledge pipeline integration
+- foundation-level app functionality
+
+Relevant files:
+- tests/
+
+---
+
+## Current Demo Behavior
+
+The app currently supports a believable IT helpdesk demo flow:
+
+1. User opens the portal and asks a support question or creates a ticket.
+2. The backend performs knowledge retrieval against approved docs.
+3. The assistant crafts a grounded answer using relevant knowledge.
+4. The user can view a knowledge search result or ask a live chat question.
+5. The dashboard shows a simulated ITSM view with active requests and ticket history.
+
+This is a valid prototype for a hackathon or demo presentation.
+
+---
+
+## Tech Stack
+
+- Frontend: React + Vite
+- Backend: FastAPI + Python
+- AI / retrieval: sentence-transformers + Chroma
+- Database foundation: MongoDB-ready / PyMongo integration
+- Data validation: Pydantic
+- Testing: Python unittest
+
+---
+
+## Project Structure
+
+- backend/app/ - FastAPI application and service logic
+- backend/requirements.txt - Python dependencies
+- frontend/ - React frontend
+- data/knowledge_docs/ - approved support articles
+- data/embeddings/ - generated embedding artifacts
+- data/vector_store/chroma/ - vector store persistence
+- docs/ - API notes and planning documents
+- tests/ - validation suite
+- plan.md - project blueprint
+- workflow.md - implementation roadmap
+- README.md - project overview and status
+
+---
+
+## Setup and Run
+
+### Prerequisites
+- Node.js 18+
 - Python 3.10+
-- A local MongoDB service or MongoDB Atlas account for database-backed work; the API can start without a reachable database
+- A working virtual environment for backend dependencies
+- Optional MongoDB local instance or Atlas connection for persistence
 
-If PowerShell reports that `npm` is not recognized after installing Node.js, open a new terminal or add the Node.js install directory to the current session's PATH. For the default Windows installation:
+### Frontend install
 
-```powershell
-$env:Path += ';C:\Program Files\nodejs'
+```bash
+cd frontend
+npm install
 ```
 
-## Setup
+### Backend install
 
-Run these commands from the repository root.
-
-### Frontend dependencies
-
-```powershell
-Set-Location 'D:\AI_HACKATHON_FRESHER\frontend'
-npm.cmd install
+```bash
+cd backend
+pip install -r requirements.txt
 ```
 
-### Backend environment and dependencies
+### Run backend
 
-```powershell
-Set-Location 'D:\AI_HACKATHON_FRESHER'
-py -3.10 -m venv backend\.venv
-.\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+```bash
+cd /media/hp/New Volume1/AI_HACKATHON_FRESHER
+source /home/hp/.venvs/default/bin/activate
+python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
 ```
 
-If the virtual environment already exists, skip the `venv` command.
+### Run frontend
 
-### Environment variables
-
-Create a local `.env` from the example:
-
-```powershell
-Copy-Item .env.example .env
+```bash
+cd frontend
+npm run dev
 ```
 
-Set `MONGODB_URI` to your local MongoDB URI or Atlas connection string and adjust `MONGODB_DB` if needed. Keep real credentials in `.env`; do not commit them. The model and ServiceNow variables are placeholders for later phases and are not currently loaded by an AI or ServiceNow integration.
+### Key app URLs
+- Backend docs: http://127.0.0.1:8000/docs
+- Health route: http://127.0.0.1:8000/health
+- API health route: http://127.0.0.1:8000/api/v1/health
 
-## Run Locally
+---
 
-Open separate PowerShell terminals.
+## Knowledge Pipeline
 
-### Backend
+The knowledge base is built from IT support documents and chunked into embeddings for semantic retrieval.
 
-```powershell
-Set-Location 'D:\AI_HACKATHON_FRESHER\backend'
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8001
+To generate chunks and embeddings:
+
+```bash
+cd /media/hp/New Volume1/AI_HACKATHON_FRESHER
+source /home/hp/.venvs/default/bin/activate
+python -m backend.app.knowledge_pipeline
 ```
 
-If port `8001` is already occupied, stop the existing backend with `Ctrl+C` in its terminal, or use another port such as `8002`.
+To build and query the vector store:
 
-### Frontend
-
-```powershell
-Set-Location 'D:\AI_HACKATHON_FRESHER\frontend'
-npm.cmd run dev
+```bash
+cd /media/hp/New Volume1/AI_HACKATHON_FRESHER
+source /home/hp/.venvs/default/bin/activate
+python -m backend.app.knowledge_vector_store
 ```
 
-Vite prints the frontend URL when it starts, normally `http://localhost:5173`.
+---
 
-### Backend URLs
+## What We Still Need to Do in the Future
 
-- App status: `http://127.0.0.1:8001/`
-- Health check: `http://127.0.0.1:8001/health`
-- Versioned health check: `http://127.0.0.1:8001/api/v1/health`
-- Interactive API docs: `http://127.0.0.1:8001/docs`
+This project is not yet complete against the full enterprise brief. Below are the items that still need to be implemented for a stronger production-style demo and final business challenge completion.
 
-On startup, the backend reads MongoDB configuration, prepares handles for the `tickets`, `knowledge`, `chat`, `audit`, and `software_requests` collections, and creates missing collections if MongoDB is reachable. If MongoDB is unavailable, the API logs a warning and continues in a degraded mode; database persistence is then unavailable.
+### 1. Real MongoDB Persistence
+We need to move from the current foundation to a fully working database-backed flow:
+- persist tickets in MongoDB,
+- save chat history,
+- store software requests,
+- save automation audit logs,
+- support ticket updates and status transitions.
 
-## Tests and Build
+### 2. ServiceNow Integration or Mock ServiceNow API
+The project should include a realistic ITSM integration layer:
+- create incident records,
+- update existing incidents,
+- open service requests,
+- return ticket IDs and resolution status,
+- and mirror a real ServiceNow JSON contract.
 
-Run the backend tests from the repository root:
+### 3. Full Automation Engine
+We need to build the actual self-heal layer for safe tasks such as:
+- password reset / unlock flows,
+- VPN status checks,
+- service restarts,
+- cache clears,
+- app restarts,
+- account lockout troubleshooting.
 
-```powershell
-Set-Location 'D:\AI_HACKATHON_FRESHER'
-.\backend\.venv\Scripts\python.exe -m unittest discover -s tests
-```
+The system must decide:
+- whether a workflow is safe,
+- whether it is automatable,
+- or whether it should escalate to a human agent.
 
-Build the frontend:
+### 4. Audit Logging for Every Action
+Every automated step must be logged with:
+- time stamp,
+- task name,
+- result,
+- confidence level,
+- who/what initiated it,
+- whether it succeeded or failed.
 
-```powershell
-Set-Location 'D:\AI_HACKATHON_FRESHER\frontend'
-npm.cmd run build
-```
+### 5. Software Provisioning Workflow
+We still need a stronger software request flow:
+- employee requests software,
+- AI identifies it as a provisioning request,
+- service request is created,
+- mock provisioning status is tracked,
+- UI shows progress and final state.
 
-## Chunk and Embed Knowledge Articles
+### 6. Better AI / LLM Integration
+The current system is grounded and retrieval-based, but for a stronger solution we should add:
+- an open-source LLM from Hugging Face or another lightweight model,
+- intent classification and summarization through the model,
+- confidence scoring,
+- and more structured response generation.
 
-Install the backend dependencies, then run the pipeline from the repository root:
+### 7. Expanded Knowledge Coverage
+The repository already contains several useful support articles, but we should continue adding more enterprise-ready documents to cover:
+- software installation,
+- application access,
+- endpoint/device management,
+- employee onboarding/offboarding,
+- account provisioning,
+- laptop health checks,
+- printer troubleshooting,
+- multi-factor authentication issues.
 
-```powershell
-Set-Location 'D:\AI_HACKATHON_FRESHER'
-.\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
-.\backend\.venv\Scripts\python.exe -m backend.app.knowledge_pipeline
-```
+### 8. Stronger Demo UX and Workflow Validation
+We should improve the final experience by adding:
+- clearer chat/ticket separation,
+- better visual states for in-progress and resolved cases,
+- ticket detail pages,
+- richer request history,
+- and polished presentation for a live demo.
 
-The first run downloads the model configured by `EMBEDDING_MODEL` (default: `sentence-transformers/all-MiniLM-L6-v2`). The pipeline writes chunk text, normalized embedding vectors, and source metadata as JSON Lines to `data/embeddings/knowledge_chunks.jsonl`. Use `--max-chars` to change the approximate maximum chunk length.
+### 9. Production-Readiness Hardening
+Future work should also include:
+- authentication and authorization,
+- secure environment variables and secret handling,
+- restricted CORS settings,
+- production deployment config,
+- error monitoring,
+- and structured logging.
 
-## Build and Query the Knowledge Vector Store
+---
 
-After generating the embedding artifact, index its vectors into the persistent Chroma collection:
+## Current Status Summary
 
-```powershell
-Set-Location 'D:\AI_HACKATHON_FRESHER'
-.\backend\.venv\Scripts\python.exe -m backend.app.knowledge_vector_store
-```
+### Completed
+- React app shell and portal navigation
+- FastAPI backend shell and health API
+- knowledge doc collection
+- vector store and retrieval workflow
+- chat response generation grounded in approved documentation
+- ticket intake interface
+- dashboard-style service desk overview
+- basic automated test suite
 
-Run a semantic search with exact category and topic filters:
+### Remaining for Full Completion
+- real MongoDB-backed records
+- ServiceNow/mock service integration
+- automation execution workflow and audit trail
+- software provisioning automation
+- stronger LLM orchestration
+- broader product polish and deployment hardening
 
-```powershell
-.\backend\.venv\Scripts\python.exe -m backend.app.knowledge_vector_store --query "VPN connection keeps failing" --category Network --topic VPN --limit 5
-```
+---
 
-Chroma persists its local index under `data/vector_store/chroma` by default. Set `CHROMA_PERSIST_DIRECTORY` or `CHROMA_COLLECTION_NAME` in `.env` to customize it.
+## Final Note
 
-## Planned Data Flow
+This repository is already a strong demo prototype for an AI-powered IT helpdesk. It demonstrates the core business value clearly: employees can ask for help, get grounded guidance, create operational tickets, and see a modern support portal experience.
 
-The target flow is employee request -> React frontend -> FastAPI -> intent and knowledge processing -> MongoDB records and optional ITSM integration. The repository currently includes the application shells, database foundation, data contracts, demo knowledge articles, chunking and embeddings, and a persistent vector store.
-
-## Limitations and Assumptions
-
-- The MongoDB layer initializes collections but application CRUD workflows and sample-record seeding are not implemented.
-- The seven knowledge articles are generic demo examples, not organization-approved support policy.
-- The retrieval API and grounded answer generation are not implemented yet; the vector store is currently accessed through its indexing and search CLI.
-- ServiceNow credentials are placeholders; neither a real integration nor a mock ServiceNow API has been built.
-- Frontend screens are a navigation shell and are not yet connected to backend workflows or persistent data.
-- CORS currently permits all origins for development. Restrict allowed origins before deployment.
-- No production authentication, authorization, secrets management, or deployment configuration is included.
+The future work focuses on turning this into a more complete enterprise workflow by adding real persistence, real ticketing and automation, and a fuller AI orchestration layer.
