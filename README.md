@@ -87,13 +87,9 @@ Relevant implementation files:
 - backend/app/routers/knowledge.py
 
 ### 5. Ticket Intake Workflow
-The app supports a ticket-like flow where a user can:
-- describe a problem,
-- trigger a structured ticket creation flow,
-- create a ticket request in the UI,
-- and see it appear in the dashboard list.
+The app supports a ticket flow where a user can describe an issue, receive AI classification, create an incident record, and review it in the dashboard. The dashboard loads ticket records from the backend, filters open and resolved tickets, and shows the selected ticket's details, confidence, routing, suggested resolution, and knowledge sources.
 
-This is a lightweight demo of an ITSM ticket intake pipeline.
+Ticket records are kept in memory when MongoDB is unavailable and are also written to MongoDB when the connection is available.
 
 ### 6. MongoDB Foundation
 The project includes the database foundation for future persistence:
@@ -210,6 +206,28 @@ npm run dev
 - Backend docs: http://127.0.0.1:8000/docs
 - Health route: http://127.0.0.1:8000/health
 - API health route: http://127.0.0.1:8000/api/v1/health
+
+### Fast start (Linux Bash)
+
+```bash
+cd "/media/hp/New Volume/AI_HACKATHON_FRESHER"
+source .venv/bin/activate
+export MONGODB_URI="mongodb://127.0.0.1:27017"
+export MONGODB_DB="itsm_ai"
+python3 -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+```bash
+cd "/media/hp/New Volume/AI_HACKATHON_FRESHER"
+npm run frontend:dev
+```
+
+---
+
+## Demo Rehearsal and Architecture Brief
+
+- A complete Phase 7.4 rehearsal plan with timing, scenario order, fallback strategy, and architecture summary is available in `docs/demo_runbook.md`.
+- Use this as the speaking script for the final hackathon walkthrough.
 
 ---
 
@@ -331,8 +349,9 @@ Future work should also include:
 - knowledge doc collection
 - vector store and retrieval workflow
 - chat response generation grounded in approved documentation
-- ticket intake interface
-- dashboard-style service desk overview
+- ticket intake connected to backend incident creation
+- backend ticket list and detail endpoints
+- dashboard filters for open and resolved records, with AI analysis details
 - basic automated test suite
 
 ### Remaining for Full Completion

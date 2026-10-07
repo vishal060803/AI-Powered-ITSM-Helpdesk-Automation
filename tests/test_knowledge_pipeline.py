@@ -4,6 +4,7 @@ import unittest
 from backend.app.knowledge_pipeline import (
     chunk_articles,
     generate_embeddings,
+    get_model_execution_snapshot,
     load_articles,
 )
 
@@ -70,6 +71,18 @@ class KnowledgeEmbeddingTests(unittest.TestCase):
         self.assertEqual(
             embedded_chunks[0]["chunk_id"], chunks[0]["chunk_id"]
         )
+
+
+class ResourceSafetyTests(unittest.TestCase):
+    def test_returns_safe_execution_snapshot(self):
+        snapshot = get_model_execution_snapshot()
+
+        self.assertIn("cpu_count", snapshot)
+        self.assertIn("memory_total_mb", snapshot)
+        self.assertIn("disk_free_gb", snapshot)
+        self.assertIn("safe_to_run", snapshot)
+        self.assertIn("reasons", snapshot)
+        self.assertIsInstance(snapshot["safe_to_run"], bool)
 
 
 if __name__ == "__main__":

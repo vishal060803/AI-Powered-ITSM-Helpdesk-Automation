@@ -30,6 +30,32 @@ class AIAnalysis(BaseModel):
     sources: list[KnowledgeSource] = Field(default_factory=list)
 
 
+class IncidentExtraction(BaseModel):
+    summary: str
+    description: str
+    category: str
+    sub_category: str
+    impact: str
+    urgency: str
+    priority: Literal["P1", "P2", "P3", "P4"]
+    assignment_group: str
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    service_now_fields: dict[str, Any] = Field(default_factory=dict)
+
+
+class ServiceNowIncidentPayload(BaseModel):
+    short_description: str
+    description: str
+    category: str
+    sub_category: str
+    priority: Literal["P1", "P2", "P3", "P4"]
+    impact: str
+    urgency: str
+    assignment_group: str
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    service_now_fields: dict[str, Any] = Field(default_factory=dict)
+
+
 class ChatMessage(BaseModel):
     role: Literal["user", "assistant", "system"]
     content: str
@@ -52,6 +78,12 @@ class Ticket(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0)
     ai_analysis: AIAnalysis
     service_now_ref: Optional[str] = None
+    automation_outcome: Optional[Literal["resolved", "escalated"]] = None
+    last_automation_action_id: Optional[str] = None
+    last_automation_name: Optional[str] = None
+    last_automation_status: Optional[str] = None
+    last_automation_steps: list[str] = Field(default_factory=list)
+    last_automation_validation_result: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -82,10 +114,63 @@ class SoftwareRequest(BaseModel):
     request_id: str
     employee_id: str
     software_name: str
-    status: Literal["requested", "provisioning", "completed", "failed"]
+    status: Literal[
+        "requested",
+        "queued",
+        "approved",
+        "provisioning",
+        "completed",
+        "failed",
+        "rejected",
+    ]
     service_now_ref: Optional[str] = None
+    request_summary: Optional[str] = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class SoftwareCatalogItem(BaseModel):
+    software_id: str
+    name: str
+    category: str
+    version: str
+    license_type: str
+    approval_required: bool
+    supported_os: list[str] = Field(default_factory=list)
+    default_assignment_group: str
+    estimated_fulfillment_hours: int = Field(ge=1)
+    request_metadata_fields: list[str] = Field(default_factory=list)
+
+
+class SoftwareCatalogResponse(BaseModel):
+    status_lifecycle: list[str] = Field(default_factory=list)
+    items: list[SoftwareCatalogItem] = Field(default_factory=list)
+
+
+class SoftwareRequestCreateRequest(BaseModel):
+    employee_id: str
+    software_name: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class SoftwareRequestCreateResponse(BaseModel):
+    request_id: str
+    service_now_ref: str
+    status: str
+    message: str
+
+
+class SoftwareRequestStatusUpdateRequest(BaseModel):
+    status: Literal[
+        "requested",
+        "queued",
+        "approved",
+        "provisioning",
+        "completed",
+        "failed",
+        "rejected",
+    ]
 
 
 class ChatRequest(BaseModel):
@@ -160,6 +245,9 @@ class KnowledgeRetrievalResponse(BaseModel):
     question: str
     results: list[KnowledgeRetrievalResult]
     sources: list[KnowledgeSource]
+    answer: str = ""
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    is_supported: bool = True
 
 
 class AutomationExecutionRequest(BaseModel):
@@ -171,7 +259,9 @@ class AutomationExecutionRequest(BaseModel):
 class AutomationExecutionResponse(BaseModel):
     automation_id: str
     ticket_id: str
+    automation_name: str
     status: str
+    steps: list[str] = Field(default_factory=list)
     result_message: str
     validation_result: Optional[str] = None
 

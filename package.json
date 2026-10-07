@@ -10,8 +10,9 @@
   "scripts": {
     "frontend:install": "npm --prefix frontend install",
     "frontend:dev": "npm --prefix frontend run dev -- --host 0.0.0.0",
-    "backend:install": "python -m venv backend/.venv && backend/.venv/Scripts/python -m pip install -r backend/requirements.txt",
-    "backend:dev": "cd backend && .\\.venv\\Scripts\\python -m uvicorn app.main:app --host 127.0.0.1 --port 8000",
+    "backend:install": "python3 -m pip install -r backend/requirements.txt",
+    "backend:dev": ". .venv/bin/activate && MONGODB_URI=${MONGODB_URI:-mongodb://127.0.0.1:27017} MONGODB_DB=${MONGODB_DB:-itsm_ai} python3 -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload",
+    "start": "npm run frontend:dev",
     "test": "echo \"No project tests configured yet.\""
   },
   "keywords": [],

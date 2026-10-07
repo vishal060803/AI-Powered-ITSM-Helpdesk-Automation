@@ -169,10 +169,16 @@ This workflow is designed to keep the project manageable and controlled. Instead
 - Save incident in MongoDB
 - Return ServiceNow reference ID to frontend
 
+**Previous checkpoint:** Work was previously paused here. The incident API and ticket-record creation flow are now implemented.
+
 ### Sub-phase 3.4: Ticket Record and Dashboard
 - Show single ticket details in dashboard
 - Show list of open and resolved tickets
 - Show AI analysis details for each ticket
+- Load ticket records and details from the backend API
+- Connect ticket intake to incident analysis and record creation
+
+**Status:** Complete. The dashboard reads ticket records from the API, filters open and resolved tickets, and displays each selected ticket's AI analysis. Ticket intake creates a backend incident record.
 
 ### Exit criteria for Phase 3
 - A natural language complaint becomes a structured service record

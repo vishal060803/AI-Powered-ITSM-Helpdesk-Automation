@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-10-06T09:21:00.980378+00:00",
+  "cpu_count": 8,
+  "memory_total_mb": 7705,
+  "memory_available_mb": 1511,
+  "disk_free_gb": 219.67,
+  "backend_process_count": 1,
+  "safe_to_run": true,
+  "reasons": []
+}

@@ -2,6 +2,9 @@ import argparse
 import json
 import os
 import re
+import shutil
+import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -12,9 +15,82 @@ load_dotenv()
 
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 REQUIRED_ARTICLE_FIELDS = ("article_id", "title", "category", "source_file")
+_DEFAULT_MODEL_RUN_LOG = Path(__file__).resolve().parents[2] / "data" / "embeddings" / "model_run_settings.json"
 _LIST_ITEM = re.compile(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)")
 _HEADING = re.compile(r"^#{1,6}\s+")
 _SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+")
+
+
+def get_model_execution_snapshot() -> dict[str, Any]:
+    cpu_count = os.cpu_count() or 0
+    total_memory_mb = 0
+    available_memory_mb = 0
+    disk_free_gb = 0.0
+
+    try:
+        with open("/proc/meminfo", "r", encoding="utf-8") as meminfo:
+            entries = {}
+            for line in meminfo:
+                key, _, value = line.partition(":")
+                if not _:
+                    continue
+                entries[key.strip()] = int(value.strip().split()[0])
+            total_memory_mb = int(entries.get("MemTotal", 0) / 1024)
+            available_memory_mb = int(entries.get("MemAvailable", entries.get("MemFree", 0)) / 1024)
+    except OSError:
+        pass
+
+    disk_free_gb = shutil.disk_usage(str(Path(__file__).resolve().parents[2])).free / (1024 ** 3)
+
+    try:
+        process_output = subprocess.check_output(
+            ["ps", "-eo", "comm="],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+        backend_process_count = sum(1 for name in process_output.splitlines() if name.strip() == "uvicorn")
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        backend_process_count = 0
+
+    reasons: list[str] = []
+    if cpu_count and cpu_count < 2:
+        reasons.append("CPU count is below the recommended minimum for embedding work.")
+    if total_memory_mb and total_memory_mb < 4096:
+        reasons.append("System memory is below 4 GB; model rebuilds may be unstable.")
+    if available_memory_mb and available_memory_mb < 1024:
+        reasons.append("Available RAM is below 1 GB; prefer reuse of existing embeddings.")
+    if disk_free_gb < 5:
+        reasons.append("Less than 5 GB of free disk space remains.")
+    if backend_process_count > 1:
+        reasons.append("Multiple active backend processes were detected; use one active backend before heavy model work.")
+
+    snapshot = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "cpu_count": cpu_count,
+        "memory_total_mb": total_memory_mb,
+        "memory_available_mb": available_memory_mb,
+        "disk_free_gb": round(disk_free_gb, 2),
+        "backend_process_count": backend_process_count,
+        "safe_to_run": not reasons,
+        "reasons": reasons,
+    }
+    return snapshot
+
+
+def save_model_execution_snapshot(snapshot: dict[str, Any], output_path: str | Path | None = None) -> Path:
+    path = Path(output_path) if output_path is not None else _DEFAULT_MODEL_RUN_LOG
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(snapshot, indent=2, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
+def validate_model_execution(output_path: str | Path | None = None) -> tuple[bool, dict[str, Any]]:
+    snapshot = get_model_execution_snapshot()
+    path = save_model_execution_snapshot(snapshot, output_path)
+    if snapshot["safe_to_run"]:
+        return True, {**snapshot, "log_path": str(path)}
+
+    return False, {**snapshot, "log_path": str(path)}
 
 
 def load_articles(directory: Path) -> list[dict[str, Any]]:
@@ -232,7 +308,28 @@ def main() -> None:
         default=project_root / "data" / "embeddings" / "knowledge_chunks.jsonl",
     )
     parser.add_argument("--max-chars", type=int, default=1200)
+    parser.add_argument(
+        "--force-rebuild",
+        action="store_true",
+        help="Ignore resource safety checks and rebuild the embedding artifact anyway.",
+    )
     args = parser.parse_args()
+
+    safe_to_run, snapshot = validate_model_execution(
+        output_path=project_root / "data" / "embeddings" / "model_run_settings.json"
+    )
+    if not safe_to_run and args.output.exists() and not args.force_rebuild:
+        print(
+            "Low-resource execution detected. Reusing the persisted embedding artifact instead of rebuilding it.\n"
+            f"Snapshot: {snapshot}"
+        )
+        return
+
+    if not safe_to_run and not args.output.exists() and not args.force_rebuild:
+        raise RuntimeError(
+            "The environment is not safe for model work. "
+            "Free memory, close extra workloads, or rerun with --force-rebuild if you understand the risk."
+        )
 
     articles = load_articles(args.articles)
     chunks = chunk_articles(articles, max_chars=args.max_chars)

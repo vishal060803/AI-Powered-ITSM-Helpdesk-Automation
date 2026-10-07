@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,7 +15,10 @@ try:
         get_collection_handles,
     )
     from app.routers import health as health_router
+    from app.routers import automation as automation_router
     from app.routers import knowledge as knowledge_router
+    from app.routers import software as software_router
+    from app.routers import servicenow as servicenow_router
 except ImportError:  # pragma: no cover - fallback for repo-root imports during tests
     from backend.app.database import (
         MongoSettings,
@@ -23,7 +27,10 @@ except ImportError:  # pragma: no cover - fallback for repo-root imports during 
         get_collection_handles,
     )
     from backend.app.routers import health as health_router
+    from backend.app.routers import automation as automation_router
     from backend.app.routers import knowledge as knowledge_router
+    from backend.app.routers import software as software_router
+    from backend.app.routers import servicenow as servicenow_router
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +42,20 @@ async def lifespan(app: FastAPI):
     app.state.mongo_database = None
     app.state.mongo_collections = {}
     app.state.mongodb_status = "unavailable"
+
+    skip_mongo_init = os.getenv("SKIP_MONGODB_INIT", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+
+    if skip_mongo_init:
+        try:
+            yield
+        finally:
+            if client is not None:
+                client.close()
+        return
 
     try:
         settings = MongoSettings.from_env()
@@ -87,7 +108,10 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(health_router.router, prefix="/api/v1", tags=["health"])
+    app.include_router(automation_router.router, prefix="/api/v1/automation", tags=["automation"])
     app.include_router(knowledge_router.router, prefix="/api/v1/knowledge", tags=["knowledge"])
+    app.include_router(software_router.router, prefix="/api/v1/software", tags=["software"])
+    app.include_router(servicenow_router.router, prefix="/api/servicenow", tags=["servicenow"])
     return app
 
 

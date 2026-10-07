@@ -148,3 +148,20 @@ This document defines the main payload contracts for the AI ITSM prototype.
 - All RAG responses must attribute sources.
 - Automation actions must be auditable.
 - Production ServiceNow integration should mirror these schemas.
+
+## 8. Ticket record endpoints
+
+### List tickets
+
+`GET /api/v1/knowledge/incidents`
+
+The response is an array of ticket records using the ticket schema above. The optional `status` query parameter accepts `open` or `resolved`:
+
+- `open` returns tickets not in a resolved, auto-resolved, or closed state.
+- `resolved` returns tickets in a resolved, auto-resolved, or closed state.
+
+### Get ticket details
+
+`GET /api/v1/knowledge/incidents/{ticket_id}`
+
+Returns one ticket record, including its `ai_analysis`, confidence, suggested resolution, and source articles. An unknown ticket ID returns `404`.
